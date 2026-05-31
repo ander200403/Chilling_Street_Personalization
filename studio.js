@@ -1,6 +1,6 @@
 // ── Configuración ───────────────────────────────────────────────
 const URL_CSV_STUDIO = "https://docs.google.com/spreadsheets/d/1oO7FElJCkPrsiHdoanfgbi5qifec4XCd8j-Ya1Q0m_A/export?format=csv&gid=0";
-const WHATSAPP = "584125713381";
+const WHATSAPP = "584242193836";
 
 let garments = [];
 let canvas;
