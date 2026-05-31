@@ -17,11 +17,12 @@
   <div class="bg-image"></div>
   <div class="bg-overlay"></div>
 
-  <header style="padding: 1.5rem 1rem;">
+  <header style="padding: 1.5rem 1rem; border: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto;">
-      <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 700;">← VOLVER</a>
-      <img src="https://drive.google.com/uc?export=view&id=1fPhQYMIdQGYn0HEzKTy4Kb44C_j9DhuJ" style="height: 40px;" alt="Logo">
-      <div style="width: 60px;"></div> </div>
+      <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 700; font-size: 0.8rem; letter-spacing: 1px;">← VOLVER</a>
+      <img src="https://drive.google.com/uc?export=view&id=1fPhQYMIdQGYn0HEzKTy4Kb44C_j9DhuJ" style="height: 40px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));" alt="Logo">
+      <div style="width: 60px;"></div>
+    </div>
     <h2 style="font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 900; margin-top: 15px; color: var(--accent);">CHILLING STUDIO</h2>
     <p class="welcome-text">DISEÑA TU PRENDA EXCLUSIVA</p>
   </header>
@@ -29,9 +30,9 @@
   <main style="max-width: 500px; margin: 0 auto; padding: 0 1rem 6rem;">
     
     <div class="studio-garment-selector">
-      <h3 style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 1px;">1. ELIGE TU LIENZO</h3>
+      <h3 style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 1px;">1. ELIGE TU LIENZO</h3>
       <div class="garment-track" id="garmentTrack">
-        <p style="color: var(--text-muted); font-size: 0.8rem;">Cargando prendas...</p>
+        <p style="color: var(--text-muted); font-size: 0.8rem;">Cargando prendas desde la base de datos...</p>
       </div>
     </div>
 
@@ -42,16 +43,16 @@
     <div class="studio-controls">
       <input type="file" id="logoUpload" accept="image/png, image/jpeg" style="display:none;">
       
-      <button class="checkout-btn" onclick="document.getElementById('logoUpload').click()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--border); margin-bottom: 10px;">
+      <button class="checkout-btn" onclick="document.getElementById('logoUpload').click()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--border); margin-bottom: 10px; box-shadow: none;">
         📸 2. SUBIR LOGO (PNG)
       </button>
       
-      <button class="checkout-btn" onclick="removeSelectedObj()" style="background: rgba(255,71,87,0.2); color: var(--error); border: 1px solid rgba(255,71,87,0.4); margin-bottom: 25px; padding: 10px;">
+      <button class="checkout-btn" onclick="removeSelectedObj()" style="background: rgba(255,71,87,0.15); color: var(--error); border: 1px solid rgba(255,71,87,0.4); margin-bottom: 25px; padding: 12px; font-size: 0.8rem; box-shadow: none;">
         🗑️ BORRAR LOGO SELECCIONADO
       </button>
       
-      <button class="checkout-btn" onclick="downloadAndSendOrder()" style="background: var(--text-main); color: var(--bg-dark);">
-        ⚡ 3. ENVIAR DISEÑO
+      <button class="checkout-btn" onclick="downloadAndSendOrder()" style="background: var(--text-main); color: var(--bg-dark); font-size: 1rem;">
+        ⚡ 3. ENVIAR DISEÑO A WHATSAPP
       </button>
     </div>
 
