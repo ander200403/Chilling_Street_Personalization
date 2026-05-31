@@ -1,4 +1,4 @@
-// Enlace de tu nuevo Excel de Prendas Base
+// URL de tu Excel específico para el Studio
 const URL_CSV_STUDIO = "https://docs.google.com/spreadsheets/d/1oO7FElJCkPrsiHdoanfgbi5qifec4XCd8j-Ya1Q0m_A/export?format=csv&gid=0";
 const WHATSAPP = "584125713381";
 
@@ -13,14 +13,18 @@ function showToast(msg) {
   setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
-// Convertidor de URL de Drive seguro
+// Convertidor de URL de Drive SEGURO para Canvas (Evita el bloqueo de Tainted Canvas)
 function getStableImageUrl(rawImg) {
   if (!rawImg) return '';
   if (rawImg.indexOf('drive.google.com') !== -1) {
     const matchD = rawImg.match(/\/d\/([a-zA-Z0-9_-]+)/);
     const matchId = rawImg.match(/[?&]id=([a-zA-Z0-9_-]+)/);
     const driveId = (matchD && matchD[1]) || (matchId && matchId[1]);
-    if (driveId) return 'https://drive.google.com/uc?export=view&id=' + driveId;
+    if (driveId) {
+      const driveUrl = 'https://drive.google.com/uc?export=view&id=' + driveId;
+      // Usamos un proxy de imágenes para evitar bloqueos de seguridad del navegador al fusionar el diseño
+      return 'https://wsrv.nl/?url=' + encodeURIComponent(driveUrl) + '&output=png';
+    }
   }
   return rawImg;
 }
@@ -29,7 +33,7 @@ function getStableImageUrl(rawImg) {
 function initCanvas() {
   const container = document.getElementById('canvasContainer');
   const width = container.clientWidth;
-  const height = width * 1.25; // Proporción 4:5
+  const height = width * 1.25; // Proporción 4:5 estilo ropa
 
   canvas = new fabric.Canvas('tshirtCanvas', {
     width: width,
@@ -38,7 +42,7 @@ function initCanvas() {
   });
 }
 
-// Cargar inventario de prendas base desde el nuevo Excel
+// Cargar inventario de prendas base desde el Excel
 async function loadStudioData() {
   try {
     const tstamp = new Date().getTime();
@@ -49,16 +53,9 @@ async function loadStudioData() {
       header: false,
       skipEmptyLines: true,
       complete: function(results) {
-        // Asumimos que la fila 1 son los títulos
         const rows = results.data.slice(1);
         
         garments = rows.map((cols, index) => {
-          /* ATENCIÓN AL ORDEN DEL EXCEL:
-             Columna A (0): ID
-             Columna B (1): Nombre
-             Columna C (2): Color
-             Columna D (3): Link de Drive
-          */
           return {
             id: cols[0] || index,
             name: cols[1] || 'Prenda',
@@ -69,13 +66,15 @@ async function loadStudioData() {
 
         renderGarments();
         if(garments.length > 0) {
-          selectGarment(0); // Seleccionar la primera por defecto
+          selectGarment(0); // Auto-selecciona la primera prenda
+        } else {
+          document.getElementById('garmentTrack').innerHTML = '<p style="color: var(--text-muted); font-size: 0.8rem;">No hay prendas configuradas en el Excel.</p>';
         }
       }
     });
   } catch(e) {
     console.error("Error cargando prendas de estudio:", e);
-    showToast("Error de conexión");
+    showToast("Error de conexión con la base de datos");
   }
 }
 
@@ -89,13 +88,15 @@ function renderGarments() {
   `).join('');
 }
 
-// Cambiar la imagen de fondo del lienzo
+// Poner la prenda de fondo en el lienzo
 function selectGarment(index) {
   const g = garments[index];
   if (!g || !canvas) return;
 
+  showToast("Cargando prenda...");
+
   fabric.Image.fromURL(g.img, function(img) {
-    // Escalar imagen para cubrir el canvas
+    // Escalar imagen para que cubra el canvas perfectamente
     const scale = Math.max(canvas.width / img.width, canvas.height / img.height);
     img.set({
       originX: 'center',
@@ -107,11 +108,10 @@ function selectGarment(index) {
     });
     
     canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
-    showToast(`Lienzo: ${g.name}`);
-  }, { crossOrigin: 'anonymous' });
+  }, { crossOrigin: 'anonymous' }); // Clave para evitar error CORS
 }
 
-// Subir el logo y ponerlo sobre la ropa
+// Subir el logo del cliente y colocarlo sobre la ropa
 document.getElementById('logoUpload').addEventListener('change', function(e) {
   const file = e.target.files[0];
   if (!file) return;
@@ -120,11 +120,11 @@ document.getElementById('logoUpload').addEventListener('change', function(e) {
   reader.onload = function(f) {
     const data = f.target.result;
     fabric.Image.fromURL(data, function(img) {
-      // Escalar logo a un tamaño prudente
+      // Escalar logo a un tamaño prudente inicial (40% del ancho del lienzo)
       img.scaleToWidth(canvas.width * 0.4); 
       img.set({
         left: canvas.width / 2,
-        top: canvas.height / 2,
+        top: canvas.height / 2.5,
         originX: 'center',
         originY: 'center',
         borderColor: '#ffffff',
@@ -134,7 +134,7 @@ document.getElementById('logoUpload').addEventListener('change', function(e) {
       });
       canvas.add(img);
       canvas.setActiveObject(img);
-      showToast("¡Logo añadido! Arrástralo.");
+      showToast("¡Logo añadido! Arrástralo a tu gusto.");
     });
   };
   reader.readAsDataURL(file);
@@ -145,49 +145,54 @@ function removeSelectedObj() {
   if (activeObj) {
     canvas.remove(activeObj);
   } else {
-    showToast("Toca un logo para borrarlo");
+    showToast("⚠️ Toca un logo primero para borrarlo");
   }
 }
 
-// Empaquetar y Enviar
+// Empaquetar diseño, descargar y enviar a WhatsApp
 function downloadAndSendOrder() {
   if(canvas.getObjects().length === 0) {
-    showToast("⚠️ Añade un logo antes de enviar");
+    showToast("⚠️ Añade al menos un logo antes de enviar");
     return;
   }
 
-  // Quitar la selección visual (el cuadrito de edición) antes de la foto
+  // Quitar el cuadro de selección visual antes de tomar la foto final
   canvas.discardActiveObject();
   canvas.renderAll();
 
-  showToast("⏳ Generando diseño...");
+  showToast("⏳ Procesando diseño en alta calidad...");
 
   setTimeout(() => {
-    // 1. Tomar la foto HD
-    const dataURL = canvas.toDataURL({
-      format: 'png',
-      multiplier: 2 // Alta calidad
-    });
+    try {
+      // 1. Generar la foto final fusionada
+      const dataURL = canvas.toDataURL({
+        format: 'png',
+        multiplier: 2 // Exportar en alta resolución
+      });
 
-    // 2. Descargarla automáticamente
-    const link = document.createElement('a');
-    link.download = 'Chilling_Studio_Design.png';
-    link.href = dataURL;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+      // 2. Forzar descarga en el dispositivo del cliente
+      const link = document.createElement('a');
+      link.download = 'Chilling_Studio_Design.png';
+      link.href = dataURL;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
 
-    // 3. Abrir WhatsApp
-    const msg = encodeURIComponent("⚡ *CHILLING STUDIO* ⚡\n\nHola, acabo de crear un diseño personalizado en la tienda.\n\n_En un momento te adjunto la imagen de cómo quiero que quede, que se acaba de descargar en mi teléfono/PC._");
-    
-    setTimeout(() => {
-      window.open('https://wa.me/' + WHATSAPP + '?text=' + msg);
-    }, 1500);
+      // 3. Abrir WhatsApp con el texto preparado
+      const msg = encodeURIComponent("⚡ *CHILLING STUDIO* ⚡\n\nHola, acabo de crear un diseño personalizado en la plataforma.\n\n_En un momento te adjunto la imagen de cómo quiero que quede, que se acaba de guardar en mi galería._");
+      
+      setTimeout(() => {
+        window.open('https://wa.me/' + WHATSAPP + '?text=' + msg);
+      }, 1500);
 
-  }, 500);
+    } catch(err) {
+      console.error(err);
+      showToast("❌ Error al procesar imagen. Intenta con otro logo.");
+    }
+  }, 800);
 }
 
-// Inicializar al cargar
+// Inicializar todo al abrir la página
 window.onload = () => {
   initCanvas();
   loadStudioData();
