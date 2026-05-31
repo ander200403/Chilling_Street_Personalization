@@ -4,13 +4,136 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Chilling Studio — Customizer</title>
-  
+
+  <!-- Preconnect para acelerar carga de fuentes -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
-  
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
-  
+
+  <!-- Fabric.js primero (necesario para el canvas) -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js" defer></script>
+  <!-- PapaParse después -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js" defer></script>
+
   <link rel="stylesheet" href="styles.css">
+
+  <style>
+    /* ── Estilos exclusivos de esta página ── */
+    .step-label {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 1.5px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .step-label::before {
+      content: attr(data-step);
+      background: var(--accent);
+      color: var(--bg-dark);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      font-size: 0.65rem;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+    }
+
+    .checkout-btn {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      border-radius: 6px;
+      border: none;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: 0.85rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.15s;
+    }
+    .checkout-btn:active { transform: scale(0.97); }
+    .checkout-btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    /* Banner Photoroom */
+    .photoroom-banner {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+      margin-bottom: 10px;
+      text-decoration: none;
+      transition: background 0.2s, border-color 0.2s;
+    }
+    .photoroom-banner:hover {
+      background: rgba(255,255,255,0.08);
+      border-color: rgba(255,255,255,0.35);
+    }
+    .photoroom-icon {
+      width: 38px;
+      height: 38px;
+      border-radius: 10px;
+      flex-shrink: 0;
+      background: linear-gradient(135deg, #7c3aed, #db2777);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+    }
+    .photoroom-text { flex: 1; }
+    .photoroom-text strong {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--text-main);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .photoroom-text span {
+      font-size: 0.7rem;
+      color: var(--text-muted);
+    }
+    .photoroom-arrow {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .garment-thumb.active {
+      border-color: var(--accent);
+      box-shadow: 0 0 0 1px var(--accent);
+    }
+
+    /* Loading spinner en canvas */
+    #canvasSpinner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.4);
+      z-index: 10;
+      border-radius: 8px;
+    }
+    #canvasSpinner .spinner-ring {
+      width: 36px;
+      height: 36px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #canvasSpinner.hidden { display: none; }
+  </style>
 </head>
 <body>
 
@@ -20,7 +143,10 @@
   <header style="padding: 1.5rem 1rem; border: none;">
     <div style="display: flex; justify-content: space-between; align-items: center; max-width: 600px; margin: 0 auto;">
       <a href="index.html" style="color: var(--text-muted); text-decoration: none; font-weight: 700; font-size: 0.8rem; letter-spacing: 1px;">← VOLVER</a>
-      <img src="https://drive.google.com/uc?export=view&id=1fPhQYMIdQGYn0HEzKTy4Kb44C_j9DhuJ" style="height: 40px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));" alt="Logo">
+      <!-- Logo corregido con ID correcto -->
+      <img src="https://wsrv.nl/?url=https://drive.google.com/uc?export=view%26id=1eKil-1X4fIxl99j4ySccZWsaPxEqJ6ui&output=png&w=120" 
+           style="height: 40px; filter: drop-shadow(0 0 5px rgba(0,0,0,0.8));" 
+           alt="Logo Chilling">
       <div style="width: 60px;"></div>
     </div>
     <h2 style="font-family: 'Montserrat', sans-serif; font-size: 1.8rem; font-weight: 900; margin-top: 15px; color: var(--accent);">CHILLING STUDIO</h2>
@@ -28,31 +154,63 @@
   </header>
 
   <main style="max-width: 500px; margin: 0 auto; padding: 0 1rem 6rem;">
-    
+
+    <!-- PASO 1: Selector de prendas -->
     <div class="studio-garment-selector">
-      <h3 style="font-size: 0.75rem; color: var(--text-muted); margin-bottom: 10px; letter-spacing: 1px;">1. ELIGE TU LIENZO</h3>
+      <p class="step-label" data-step="1">Elige tu lienzo</p>
       <div class="garment-track" id="garmentTrack">
-        <p style="color: var(--text-muted); font-size: 0.8rem;">Cargando prendas desde la base de datos...</p>
+        <div style="display:flex; align-items:center; gap:8px; color: var(--text-muted); font-size: 0.8rem;">
+          <div style="width:16px;height:16px;border:2px solid rgba(255,255,255,0.2);border-top-color:#fff;border-radius:50%;animation:spin 0.7s linear infinite;"></div>
+          Cargando prendas…
+        </div>
       </div>
     </div>
 
-    <div class="studio-canvas-wrap glass-panel" id="canvasContainer">
+    <!-- Canvas -->
+    <div class="studio-canvas-wrap glass-panel" id="canvasContainer" style="position:relative;">
       <canvas id="tshirtCanvas"></canvas>
+      <div id="canvasSpinner">
+        <div class="spinner-ring"></div>
+      </div>
     </div>
 
+    <!-- PASO 2: Herramientas de diseño -->
     <div class="studio-controls">
-      <input type="file" id="logoUpload" accept="image/png, image/jpeg" style="display:none;">
-      
-      <button class="checkout-btn" onclick="document.getElementById('logoUpload').click()" style="background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--border); margin-bottom: 10px; box-shadow: none;">
-        📸 2. SUBIR LOGO (PNG)
+
+      <!-- Banner Photoroom (quitar fondo) -->
+      <p class="step-label" data-step="2" style="margin-bottom:8px;">Prepara tu logo</p>
+      <a href="https://www.photoroom.com/es/tools/background-remover" 
+         target="_blank" 
+         rel="noopener"
+         class="photoroom-banner">
+        <div class="photoroom-icon">✂️</div>
+        <div class="photoroom-text">
+          <strong>QUITAR FONDO — PHOTOROOM</strong>
+          <span>Elimina el fondo de tu logo gratis antes de subirlo</span>
+        </div>
+        <span class="photoroom-arrow">↗</span>
+      </a>
+
+      <!-- Input oculto -->
+      <input type="file" id="logoUpload" accept="image/png,image/jpeg,image/webp" style="display:none;">
+
+      <button class="checkout-btn" 
+              onclick="document.getElementById('logoUpload').click()" 
+              style="background: rgba(255,255,255,0.1); color: white; border: 1px solid var(--border); margin-bottom: 8px; box-shadow: none;">
+        📸 3. SUBIR LOGO (PNG / JPG)
       </button>
-      
-      <button class="checkout-btn" onclick="removeSelectedObj()" style="background: rgba(255,71,87,0.15); color: var(--error); border: 1px solid rgba(255,71,87,0.4); margin-bottom: 25px; padding: 12px; font-size: 0.8rem; box-shadow: none;">
+
+      <button class="checkout-btn" 
+              onclick="removeSelectedObj()" 
+              style="background: rgba(255,71,87,0.12); color: var(--error); border: 1px solid rgba(255,71,87,0.35); margin-bottom: 25px; padding: 12px; font-size: 0.8rem; box-shadow: none;">
         🗑️ BORRAR LOGO SELECCIONADO
       </button>
-      
-      <button class="checkout-btn" onclick="downloadAndSendOrder()" style="background: var(--text-main); color: var(--bg-dark); font-size: 1rem;">
-        ⚡ 3. ENVIAR DISEÑO A WHATSAPP
+
+      <button class="checkout-btn" 
+              id="sendBtn"
+              onclick="downloadAndSendOrder()" 
+              style="background: var(--text-main); color: var(--bg-dark); font-size: 1rem;">
+        ⚡ 4. ENVIAR DISEÑO A WHATSAPP
       </button>
     </div>
 
